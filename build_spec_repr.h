@@ -1,13 +1,18 @@
 #ifndef BUILD_SPEC_REPR_H
 #define BUILD_SPEC_REPR_H
-typedef struct buildspec buildspec;
+typedef struct Buildspec Buildspec;
 
-buildspec* createBuildSpec(char**);
+typedef struct StringNode {
+    char* name;
+    struct StringNode* next;
+}StringNode;
 
-void addCommand(char*);
+Buildspec* createBuildSpec(StringNode*);
 
-char* getTarget(buildspec*);
-char** getDependencies(buildspec*);
-char** getCommands(buildspec*);
+void addCommand(Buildspec*, char*);
+
+char* getTarget(Buildspec*);
+StringNode* getDependencies(Buildspec*);
+StringNode* getCommands(Buildspec*);
 
 #endif
