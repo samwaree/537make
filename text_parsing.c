@@ -69,7 +69,7 @@ Buildspec* basicBuild(char* buff, FILE* make){
 	int d = 0;
 	char* name;
 	while(i < (int)strlen(line)){
-		if(line[i] == ' '){
+		if(line[i] == ' ' || line[i] == '\t'){
 			// figure out later
 			printf("Error:");
 		}else if(line[i] != ':'){
