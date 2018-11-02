@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "linked_list.h"
 
 typedef struct StringNode{
     char* name;
@@ -8,21 +9,18 @@ typedef struct StringNode{
 // Represents a build specification for the makefile
 typedef struct Buildspec {
     char* target;
-    StringNode* dependencies;
-    StringNode* commands;
-    StringNode* last; // A pointer to the last StringNode in the commands list    
+    Node* dependencies;
+    Node* commands;  
 }Buildspec;
 
 /*
-* Creates a build specification for the given list containing the target
-* and dependencies.
+* Creates a build specification for the given target
 */
-Buildspec* createBuildSpec(StringNode* list) {
+Buildspec* createBuildSpec(char* targ) {
     Buildspec* bs = (Buildspec*) malloc(sizeof(Buildspec));
-    bs->target = list->name;
-    bs->dependencies = list->next;
-    bs->commands = (StringNode*) malloc(sizeof(StringNode));
-    bs->last = bs->commands;
+    bs->target = targ;
+    bs->dependencies = createList();
+    bs->commands = createList();
 
     return bs;
 }
@@ -31,11 +29,12 @@ Buildspec* createBuildSpec(StringNode* list) {
 * Add a command to a build specification, and increments the last pointer
 */
 void addCommand(Buildspec* bs, char* command) {
-    bs->last->name = command;
-    bs->last->next = (StringNode*) malloc(sizeof(StringNode));
-    bs->last = bs->last->next;
+    append(bs->commands, command);
 }
 
+void addDependency(Buildspec* bs, char* dep) {
+    append(bs->dependencies, dep);
+}
 /*
 * Returns the target for the given buildspec
 */
@@ -46,13 +45,13 @@ char* getTarget(Buildspec* bs) {
 /*
 * Returns a list of dependencies of the given buildspec
 */
-StringNode* getDependencies(Buildspec* bs) {
+Node* getDependencies(Buildspec* bs) {
     return bs->dependencies;
 }
 
 /*
 * Returns a list of all commands for the given buildspec
 */
-StringNode* getCommands(Buildspec* bs) {
+Node* getCommands(Buildspec* bs) {
     return bs->commands;
 }

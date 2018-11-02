@@ -1,18 +1,17 @@
 #ifndef BUILD_SPEC_REPR_H
 #define BUILD_SPEC_REPR_H
+
+#include "linked_list.h"
+
 typedef struct Buildspec Buildspec;
 
-typedef struct StringNode {
-    char* name;
-    struct StringNode* next;
-}StringNode;
-
-Buildspec* createBuildSpec(StringNode*);
+Buildspec* createBuildSpec(char*);
 
 void addCommand(Buildspec*, char*);
+void addDependency(Buildspec*, char*);
 
 char* getTarget(Buildspec*);
-StringNode* getDependencies(Buildspec*);
-StringNode* getCommands(Buildspec*);
+Node* getDependencies(Buildspec*);
+Node* getCommands(Buildspec*);
 
 #endif

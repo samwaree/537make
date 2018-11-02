@@ -5,9 +5,9 @@
 
 int BUFFSIZE = 1000;
 
-void* basicBuild();
-void* fullBuild();
-void* findBuild();
+Buildspec* basicBuild();
+Buildspec* fullBuild();
+Buildspec* findBuild();
 
 /*
  * This method will read in the Makefile and check that it exists. If it exists
@@ -15,7 +15,7 @@ void* findBuild();
  * basicBuild method which indicates that 537make was the only command inputted
  * or if it should do a full build of the Makefile.
  */
-void* textParse(FILE* make, char* target){
+Buildspec* textParse(FILE* make, char* target){
 	if(make == NULL){
 		printf("Error: Cannot open Makefile");
 		exit(-1);
@@ -26,7 +26,7 @@ void* textParse(FILE* make, char* target){
 		exit(-1);
 	}
 	if(target == NULL){
-		basicBuild(buff, make);
+		return basicBuild(buff, make);
 	}else{
 //		findBuild(buff, make, target);
 	}
@@ -37,18 +37,21 @@ void* textParse(FILE* make, char* target){
  * This method will conduct a build on the first build target and its
  * dependencies.
  */
-void* basicBuild(char* buff, FILE* make){
+Buildspec* basicBuild(char* buff, FILE* make){
 	char* line;
 	char c;
-	int i = 1;
+	int i = 0;
 	while((c = fgetc(make)) != EOF){
-		if(i <= BUFFSIZE-1){
+        if (i == 0 && c == '#') {
+            //Ignore rest of line
+        }
+		if(i < BUFFSIZE){
 			if(c == '\n'){
 				line = malloc(i * sizeof(char));
-				line[i-1] = '\0';
-				i = 1;
+				line[i] = '\0';
+                break;
 			}else{
-				buff[i-1] = c;
+				buff[i] = c;
 				i++;
 			}
 		}else{
@@ -57,8 +60,10 @@ void* basicBuild(char* buff, FILE* make){
 			exit(-1);
 		}
 	}
-	StringNode* head = malloc(sizeof(StringNode));
-	StringNode* curr = head;
+	if (line == NULL) {
+        //Print error
+    }
+
 	i = 0;
 	int j = 0;
 	int d = 0;
@@ -77,31 +82,57 @@ void* basicBuild(char* buff, FILE* make){
 				j++;
 			}
 			name[j] = '\0';
-			curr->name = name;
 			break;
 		}
 	}
+    if (name == NULL) {
+        // Print error
+        exit(-1);
+    }
+
+    Buildspec* bs = createBuildSpec(name);
 	j++;
-	i++;
-//	head->next = malloc(sizeof(StringNode));
+	i++; 
 	while(j < (int)strlen(line)){
 		if((i == j) && ((line[i] == ' ') || (line[j] == '\t'))){
 			i++;
 			j++;
 		}else if((line[i] == ' ') || (line[i] == '\t')){
 			d = i - j;
-			curr->next = malloc(sizeof(StringNode));
-			curr = curr->next;
 			name = malloc(d * sizeof(char));
 			while(j < i){
 				name[j] = line[j];
 				j++;
 			}
 			name[j] = '\0';
-			curr->name = name;
+			addDependency(bs, name);
 		}
 	}
-	return NULL;
+    
+    i = 0;
+
+    // Get commands
+    while (1) {
+        c = fgetc(make);
+        if (c != '\t') {
+            // Print error
+        }
+        while ((c = fgetc(make)) != EOF) {
+            if (i < BUFFSIZE) {
+                if (c == '\n') {
+                    buff[i] = '\0';
+                    i = 0;
+                    break;
+                } else {
+                    buff[i] = c;
+                    i++;
+                }    
+            } else {
+                //Print error
+            }
+        }
+    }
+	return bs;
 }
 
 
