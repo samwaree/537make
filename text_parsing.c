@@ -2,146 +2,110 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "linked_list.h"
 
-int BUFFSIZE = 1000;
+const int BUFFSIZE = 1024;
 
-Buildspec* basicBuild();
-Buildspec* fullBuild();
-Buildspec* findBuild();
+void trim(char*);
 
-/*
- * This method will read in the Makefile and check that it exists. If it exists
- * it will check the command on the command line to see if it should call the
- * basicBuild method which indicates that 537make was the only command inputted
- * or if it should do a full build of the Makefile.
- */
-Buildspec* textParse(FILE* make, char* target){
-	if(make == NULL){
-		printf("Error: Cannot open Makefile");
-		exit(-1);
-	}
-	char* buff = (char*) malloc(BUFFSIZE * sizeof(char));
-	if(buff == NULL){
-		printf("Error: Cannot allocate memory.");
-		exit(-1);
-	}
-	if(target == NULL){
-		return basicBuild(buff, make);
-	}else{
-//		findBuild(buff, make, target);
-	}
-	return NULL;
+void printError(int line_number, char* line) {
+    fprintf(stderr, "%d: Invalid Line: \"%s\"\n", line_number, line);
 }
 
 /*
  * This method will conduct a build on the first build target and its
  * dependencies.
  */
-Buildspec* basicBuild(char* buff, FILE* make){
-	char* line;
+Node* parseMakefile(FILE* make){
+    char* buff = malloc(BUFFSIZE * sizeof(char));
+    int line_number = 1;
+    char* line = malloc(BUFFSIZE * sizeof(char));
+    Buildspec* curr = NULL;
+    Node* bs_list = createList();
 	char c;
 	int i = 0;
 	while((c = fgetc(make)) != EOF){
         if (i == 0 && c == '#') {
-            //Ignore rest of line
+            while((c = fgetc(make)) != '\n' && c != EOF);
+            line++;
+            i = 0;
+            continue;
+        }
+        if (i == 0 && c == '\n') {
+            curr = NULL;
+            line_number++;
+            continue;
         }
 		if(i < BUFFSIZE){
 			if(c == '\n'){
-				line = malloc(i * sizeof(char));
-				line[i] = '\0';
-                break;
+				buff[i] = '\0';
+                strncpy(line, buff, strlen(buff) + 1);
+//printf("Line: %s\n", line);   
+                if (strchr(line, ':') != NULL) {
+                    char* token = strtok(buff, ":");
+//printf("Target: %s\n", token);
+                    int space_flag = 0;
+                    for (int j = 0; j < (int) strlen(token); j++) {
+                        if(token[j] == ' ' || token[j] == '\t') {
+                            space_flag = 1;
+                        }
+                        if (space_flag && token[j] != ' ') {
+                            printError(line_number, line);
+                            exit(-1);
+                        }
+                    }
+                    trim(token);
+                    char* target = malloc((strlen(token) + 1) * sizeof(char));
+                    strncpy(target, token, strlen(token) + 1);
+                    curr = createBuildSpec(target);
+                    token = strtok(NULL, " \t");
+                    while (token != NULL) {
+                        if (strchr(token, ':') != NULL) {
+                            printError(line_number, line);
+                            exit(-1);   
+                        } 
+                        char* dep = malloc((strlen(token) + 1) * sizeof(char));
+                        strncpy(dep, token, strlen(token));
+                        addDependency(curr, dep);
+                        token = strtok(NULL, " \t");
+                    }
+                    append(bs_list, curr);
+                } else { // Must be a command
+                    if (curr == NULL) {
+                        printError(line_number, line);
+                        exit(-1);
+                    }
+                    if (buff[0] != '\t') {
+                        printError(line_number, line);
+                        exit(-1);
+                    }
+                    Buildspec* temp = getElement(bs_list, size(bs_list) - 1);
+                    char* command = malloc((strlen(buff) + 1) * sizeof(char));
+                    strncpy(command, buff, strlen(buff) + 1);
+                    addCommand(temp, command);
+                }
+                line_number++;
+                i = 0;
 			}else{
 				buff[i] = c;
 				i++;
 			}
 		}else{
 			// Put in the line number where it errored; keep count
-			printf("Error: Target size exceeded capacity.");
+			fprintf(stderr, "%d: Line exceeded buffer size.\n", line_number);
 			exit(-1);
 		}
 	}
-	if (line == NULL) {
-        //Print error
-    }
 
-	i = 0;
-	int j = 0;
-	int d = 0;
-	char* name;
-	while(i < (int)strlen(line)){
-		if(line[i] == ' ' || line[i] == '\t'){
-			// figure out later
-			printf("Error:");
-		}else if(line[i] != ':'){
-			i++;
-		}else{
-			d = i - j;
-			name = malloc(d * sizeof(char));
-			while(j < i){
-				name[j] = line[j];
-				j++;
-			}
-			name[j] = '\0';
-			break;
-		}
-	}
-    if (name == NULL) {
-        // Print error
-        exit(-1);
-    }
-
-    Buildspec* bs = createBuildSpec(name);
-	j++;
-	i++; 
-	while(j < (int)strlen(line)){
-		if((i == j) && ((line[i] == ' ') || (line[j] == '\t'))){
-			i++;
-			j++;
-		}else if((line[i] == ' ') || (line[i] == '\t')){
-			d = i - j;
-			name = malloc(d * sizeof(char));
-			while(j < i){
-				name[j] = line[j];
-				j++;
-			}
-			name[j] = '\0';
-			addDependency(bs, name);
-		}
-	}
-    
-    i = 0;
-
-    // Get commands
-    while (1) {
-        c = fgetc(make);
-        if (c != '\t') {
-            // Print error
-        }
-        while ((c = fgetc(make)) != EOF) {
-            if (i < BUFFSIZE) {
-                if (c == '\n') {
-                    buff[i] = '\0';
-                    i = 0;
-                    break;
-                } else {
-                    buff[i] = c;
-                    i++;
-                }    
-            } else {
-                //Print error
-            }
-        }
-    }
-	return bs;
+	return bs_list;
 }
 
 
-/*
- * This method will be used to find build specs for the dependencies of a given
- * build target.
- */
-//void* findBuild(char* buff, FILE* make, char* target){
-//	return NULL;
-//}
-
-
+void trim(char* str) {
+    for (int i = 0; i < (int) strlen(str); i++) {
+        if (str[i] == ' ' || str[i] == '\t') {
+            str[i] = '\0';
+            return;
+        }
+    }
+}
