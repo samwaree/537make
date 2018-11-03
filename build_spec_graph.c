@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+/*
+* Finds and returns the Buildspec with the given target
+* Returns NULL if none found
+*/
 Buildspec* find(Node* bs_list, char* target) {
     for (int i = 0; i < size(bs_list); i++) {
         Buildspec* bs = getElement(bs_list, i);
@@ -15,6 +19,10 @@ Buildspec* find(Node* bs_list, char* target) {
     return NULL;
 }
 
+/*
+* Depth-first search to find cycles in the Buildspec graph
+* Checks to see if there a exists a back path on a single ancestor tree
+*/
 void checkCycles(Buildspec* bs, Node* bs_list) {
     if (isMarked(bs)) {
         fprintf(stderr, "Cycle Detected with target %s\n", getTarget(bs));
@@ -52,6 +60,10 @@ time_t postOrder(Buildspec* bs, Node* bs_list) {
     // If dep_mod_time > targ_mod_time build and set new targ_mod_time
     return targ_mod_date;
 }
+
+/*
+* Checks for cycles, and then runs the specificed Buildspec
+*/
 void runBuildspecs(Node* bs_list) {
     for (int i = 0; i < size(bs_list); i++) {
         Buildspec* bs = getElement(bs_list, i);
