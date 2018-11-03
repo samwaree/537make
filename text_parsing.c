@@ -13,37 +13,48 @@ void printError(int line_number, char* line) {
 }
 
 /*
- * This method will conduct a build on the first build target and its
- * dependencies.
- */
+* This method parses the whole Makefile and creates a linked list of build
+* specifications 
+*/
 Node* parseMakefile(FILE* make){
+
     char* buff = malloc(BUFFSIZE * sizeof(char));
-    int line_number = 1;
     char* line = malloc(BUFFSIZE * sizeof(char));
+    int line_number = 1;
+
+    // Represents the current Build spec to add commands to
     Buildspec* curr = NULL;
     Node* bs_list = createList();
+
 	char c;
 	int i = 0;
 	while((c = fgetc(make)) != EOF){
+        // Ignores commented lines
         if (i == 0 && c == '#') {
             while((c = fgetc(make)) != '\n' && c != EOF);
             line_number++;
             continue;
         }
+        // Ignores empty lines
         if (i == 0 && c == '\n') {
             curr = NULL;
             line_number++;
             continue;
         }
+        
+        //Reads in lines less than BUFFSIZE
 		if(i < BUFFSIZE){
-			if(c == '\n'){
+			if(c == '\n'){ //Once we have a complete line
+
 				buff[i] = '\0';
+                // Copies buff to line for error printing
                 strncpy(line, buff, strlen(buff) + 1);
-//printf("Line: %s\n", line);   
-                if (strchr(line, ':') != NULL) {
+            
+                if (strchr(line, ':') != NULL) { // Treat the line as a target
+                    // Split the line by a : to get target name
                     char* token = strtok(buff, ":");
-//printf("Target: %s\n", token);
                     int space_flag = 0;
+                    // Makes sure there is only on target before the :
                     for (int j = 0; j < (int) strlen(token); j++) {
                         if(token[j] == ' ' || token[j] == '\t') {
                             space_flag = 1;
@@ -54,15 +65,18 @@ Node* parseMakefile(FILE* make){
                         }
                     }
                     trim(token);
+                    // Copies the token to a new char* and creates a new bs
                     char* target = malloc((strlen(token) + 1) * sizeof(char));
                     strncpy(target, token, strlen(token) + 1);
                     curr = createBuildSpec(target);
+
                     token = strtok(NULL, " \t");
-                    while (token != NULL) {
+                    while (token != NULL) { // Gets all the dependencies left
                         if (strchr(token, ':') != NULL) {
                             printError(line_number, line);
                             exit(-1);   
                         } 
+                        // Copies the token to a new char* and add to curr
                         char* dep = malloc((strlen(token) + 1) * sizeof(char));
                         strncpy(dep, token, strlen(token));
                         addDependency(curr, dep);
@@ -70,11 +84,11 @@ Node* parseMakefile(FILE* make){
                     }
                     append(bs_list, curr);
                 } else { // Must be a command
-                    if (curr == NULL) {
+                    if (curr == NULL) { // If there is a line with no target
                         printError(line_number, line);
                         exit(-1);
                     }
-                    if (buff[0] != '\t') {
+                    if (buff[0] != '\t') { // Makes sure commands start with a tab
                         printError(line_number, line);
                         exit(-1);
                     }
@@ -90,7 +104,6 @@ Node* parseMakefile(FILE* make){
 				i++;
 			}
 		}else{
-			// Put in the line number where it errored; keep count
 			fprintf(stderr, "%d: Line exceeded buffer size.\n", line_number);
 			exit(-1);
 		}
