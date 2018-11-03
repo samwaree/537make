@@ -27,8 +27,7 @@ Node* parseMakefile(FILE* make){
 	while((c = fgetc(make)) != EOF){
         if (i == 0 && c == '#') {
             while((c = fgetc(make)) != '\n' && c != EOF);
-            line++;
-            i = 0;
+            line_number++;
             continue;
         }
         if (i == 0 && c == '\n') {
