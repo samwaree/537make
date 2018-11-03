@@ -1,16 +1,12 @@
 #include <stdlib.h>
 #include "linked_list.h"
 
-typedef struct StringNode{
-    char* name;
-    struct StringNode* next;
-}StringNode;
-
 // Represents a build specification for the makefile
 typedef struct Buildspec {
     char* target;
     Node* dependencies;
     Node* commands;  
+    int marked;
 }Buildspec;
 
 /*
@@ -21,7 +17,7 @@ Buildspec* createBuildSpec(char* targ) {
     bs->target = targ;
     bs->dependencies = createList();
     bs->commands = createList();
-
+    bs->marked = 0;
     return bs;
 }
 
@@ -54,4 +50,26 @@ Node* getDependencies(Buildspec* bs) {
 */
 Node* getCommands(Buildspec* bs) {
     return bs->commands;
+}
+
+/*
+* Returns whether the Buildspec is marked
+* Used for checking for cycles
+*/
+int isMarked(Buildspec* bs) {
+    return bs->marked;
+}
+
+/*
+* Marks the buildspec
+*/
+void mark(Buildspec* bs) {
+    bs->marked = 1;
+}
+
+/*
+* Unmarks the buildspec
+*/
+void unmark(Buildspec* bs) {
+    bs->marked = 0;
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "linked_list.h"
+#include "build_spec_graph.h"
 
 const int BUFFSIZE = 1024;
 
@@ -68,6 +69,12 @@ Node* parseMakefile(FILE* make){
                     // Copies the token to a new char* and creates a new bs
                     char* target = malloc((strlen(token) + 1) * sizeof(char));
                     strncpy(target, token, strlen(token) + 1);
+
+                    // Makes sure target isn't duplicate
+                    if (find(bs_list, target) != NULL) {
+                        printError(line_number, line);
+                        exit(-1);
+                    }
                     curr = createBuildSpec(target);
 
                     token = strtok(NULL, " \t");

@@ -14,4 +14,7 @@ char* getTarget(Buildspec*);
 Node* getDependencies(Buildspec*);
 Node* getCommands(Buildspec*);
 
+int isMarked(Buildspec*);
+void mark(Buildspec*);
+void unmark(Buildspec*);
 #endif
