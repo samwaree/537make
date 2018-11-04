@@ -38,7 +38,6 @@ Node* parseMakefile(FILE* make){
         }
         // Ignores empty lines
         if (i == 0 && c == '\n') {
-            curr = NULL;
             line_number++;
             continue;
         }
@@ -52,10 +51,22 @@ Node* parseMakefile(FILE* make){
                 strncpy(line, buff, strlen(buff) + 1);
             
                 if (strchr(line, ':') != NULL) { // Treat the line as a target
+                    // Checks for an empty target
+                    if (buff[0] == ':') {
+                        printError(line_number, line);
+                        exit(-1);
+                    }
                     // Split the line by a : to get target name
                     char* token = strtok(buff, ":");
                     int space_flag = 0;
-                    // Makes sure there is only on target before the :
+                        
+                    // Makes sure that the target doesn't being with space                    
+                    if (token[0] == ' ' || token[0] == '\t') {
+                        printError(line_number, line);
+                        exit(-1);
+                    }
+
+                    // Makes sure there is only one target before the :
                     for (int j = 0; j < (int) strlen(token); j++) {
                         if(token[j] == ' ' || token[j] == '\t') {
                             space_flag = 1;
