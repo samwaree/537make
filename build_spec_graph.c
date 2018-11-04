@@ -23,9 +23,9 @@ Buildspec* find(Node* bs_list, char* target) {
 * Depth-first search to find cycles in the Buildspec graph
 * Checks to see if there a exists a back path on a single ancestor tree
 */
-void checkCycles(Buildspec* bs, Node* bs_list) {
+void checkCycles(Buildspec* bs, Node* bs_list, Buildspec* prev) {
     if (isMarked(bs)) {
-        fprintf(stderr, "Cycle Detected with target %s\n", getTarget(bs));
+        fprintf(stderr, "Error: Cycle Detected:  %s <- %s\n", getTarget(bs), getTarget(prev));
         exit(-1);  
     } else {
         mark(bs);
@@ -35,7 +35,7 @@ void checkCycles(Buildspec* bs, Node* bs_list) {
         char* target = getElement(deps, i);
         Buildspec* next = find(bs_list, target);
         if (next != NULL) {
-            checkCycles(next, bs_list);
+            checkCycles(next, bs_list, bs);
         }
     }
     unmark(bs);
@@ -67,6 +67,6 @@ time_t postOrder(Buildspec* bs, Node* bs_list) {
 void runBuildspecs(Node* bs_list) {
     for (int i = 0; i < size(bs_list); i++) {
         Buildspec* bs = getElement(bs_list, i);
-        checkCycles(bs, bs_list);
+        checkCycles(bs, bs_list, NULL);
     }
 }
