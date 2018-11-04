@@ -86,7 +86,7 @@ Node* parseMakefile(FILE* make){
                         printError(line_number, line);
                         exit(-1);
                     }
-                    curr = createBuildSpec(target);
+                    curr = createBuildSpec(target, line_number);
 
                     token = strtok(NULL, " \t");
                     while (token != NULL) { // Gets all the dependencies left

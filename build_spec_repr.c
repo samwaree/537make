@@ -7,17 +7,19 @@ typedef struct Buildspec {
     Node* dependencies;
     Node* commands;  
     int marked;
+    int line_number;
 }Buildspec;
 
 /*
 * Creates a build specification for the given target
 */
-Buildspec* createBuildSpec(char* targ) {
+Buildspec* createBuildSpec(char* targ, int num) {
     Buildspec* bs = (Buildspec*) malloc(sizeof(Buildspec));
     bs->target = targ;
     bs->dependencies = createList();
     bs->commands = createList();
     bs->marked = 0;
+    bs->line_number = num;
     return bs;
 }
 
@@ -52,6 +54,12 @@ Node* getCommands(Buildspec* bs) {
     return bs->commands;
 }
 
+/*
+* Returns the line number of the build spec
+*/ 
+int getLine(Buildspec* bs) {
+    return bs->line_number;
+}
 /*
 * Returns whether the Buildspec is marked
 * Used for checking for cycles

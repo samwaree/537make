@@ -5,7 +5,7 @@
 
 typedef struct Buildspec Buildspec;
 
-Buildspec* createBuildSpec(char*);
+Buildspec* createBuildSpec(char*, int);
 
 void addCommand(Buildspec*, char*);
 void addDependency(Buildspec*, char*);
@@ -13,6 +13,7 @@ void addDependency(Buildspec*, char*);
 char* getTarget(Buildspec*);
 Node* getDependencies(Buildspec*);
 Node* getCommands(Buildspec*);
+int getLine(Buildspec*);
 
 int isMarked(Buildspec*);
 void mark(Buildspec*);
