@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 void runCommand(char** command){
 	pid_t pid;
@@ -8,7 +10,6 @@ void runCommand(char** command){
 
 	
 	if(pid == 0){
-		printf("I am a child.");
 		if(execvp(command[0], command) < 0){
 			exit(-1);
 		}else{
@@ -16,8 +17,9 @@ void runCommand(char** command){
 		}
 	}else{
 		wait(&status);
-		printf("I am a parent.");
+		//printf("Child exited with %d status.\n", status);
 		if(status == -1){
+            fprintf(stderr, "Unable to run command\n");
 			exit(-1);
 		}
 	}

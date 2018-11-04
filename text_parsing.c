@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "linked_list.h"
-#include "build_spec_graph.h"
+#include "proj_utils.h"
 
 const int BUFFSIZE = 1024;
 
@@ -129,7 +129,6 @@ Node* parseMakefile(FILE* make){
 
 	return bs_list;
 }
-
 
 void trim(char* str) {
     for (int i = 0; i < (int) strlen(str); i++) {

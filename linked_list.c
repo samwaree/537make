@@ -7,7 +7,8 @@ typedef struct Node{
 }Node;
 
 Node* createList() {
-    return (Node*) malloc(sizeof(Node));
+    Node* node = (Node*) malloc(sizeof(Node));
+    return node;
 }
 
 int size(Node* list) {
