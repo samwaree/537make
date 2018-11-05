@@ -1,15 +1,19 @@
 #include "build_spec_repr.h"
 #include "linked_list.h"
 #include "text_parsing.h"
+#include "proc_creation_prog_exe.h"
+#include "proj_utils.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <string.h>
-#include "proc_creation_prog_exe.h"
-#include "proj_utils.h"
+#include <unistd.h>
 
+/*
+* Converts a command to a tokenized list of strings
+*/ 
 char** commandToArgs(char* command) {
     Node* temp_command = createList();
     char* token = strtok(command, " \t");
@@ -17,8 +21,9 @@ char** commandToArgs(char* command) {
         append(temp_command, token);
         token = strtok(NULL, " \t");
     }
-
+    
     char** args = (char**) malloc((size(temp_command) + 1) * sizeof(char*));
+    mallocCheck(args);
 
     for (int i = 0; i < size(temp_command); i++) {
         args[i] = getElement(temp_command, i);
@@ -28,6 +33,9 @@ char** commandToArgs(char* command) {
     return args;
 }
 
+/*
+* Runs the commands for a given target
+*/
 void buildTarget(Buildspec* bs) {
     Node* commands = getCommands(bs);
     for (int i = 0; i < size(commands); i++) {
@@ -35,6 +43,7 @@ void buildTarget(Buildspec* bs) {
         runCommand(args);
     }
 }
+
 /*
 * Depth-first search to find cycles in the Buildspec graph
 * Checks to see if there a exists a back path on a single ancestor tree
@@ -58,19 +67,23 @@ void checkCycles(Buildspec* bs, Node* bs_list, Buildspec* prev) {
 }
 
 // Should do a post order traversal and run the commands
-time_t postOrder(Buildspec* bs, Node* bs_list) {
+int postOrder(Buildspec* bs, Node* bs_list) {
     Node* deps = getDependencies(bs);
-    time_t dep_mod_date = 1;
+    if (size(deps) == 0) {
+        buildTarget(bs);
+        return 1;
+    }
+    
+    int build = 0; // Changes to 1 if any dependencies were built
+    time_t dep_mod_date = 0;
     for (int i = 0; i < size(deps); i++) {
         char* target = getElement(deps, i);
         Buildspec* next = find(bs_list, target);
-        if (next == NULL) {
-            FILE* file = fopen(target, "r");
-            if (file == NULL) {
+        if (next == NULL) { // This means that the dep is a file
+            if (access(target, R_OK) < 0) {
                 fprintf(stderr, "%d: File does not exist: \"%s\"\n", getLine(bs), target);
                 exit(-1);                
             }
-            fclose(file);
 
             struct stat file_stats;
             if (stat(target, &file_stats) < 0) {
@@ -82,32 +95,31 @@ time_t postOrder(Buildspec* bs, Node* bs_list) {
                 dep_mod_date = file_stats.st_mtime;
             }
         } else {
-            time_t temp = postOrder(next, bs_list);
-            if (temp > dep_mod_date) {
-                dep_mod_date = temp;
+            int temp = postOrder(next, bs_list);
+            if (temp) {
+                build = 1;
             }
         }
     }
     
-    int target_mod_date = 0;
-    FILE* file = fopen(getTarget(bs), "r");
-    if (file == NULL) {
-        buildTarget(bs);
+    if (access(getTarget(bs), R_OK) < 0) {
+        if (build || dep_mod_date > 0) {
+            buildTarget(bs);
+            return 1;
+        }
     } else {
-        fclose(file);
         struct stat file_stats;
         if (stat(getTarget(bs), &file_stats) < 0) {
             fprintf(stderr, "Error: Unable to open file's stats: %s\n", getTarget(bs));
             exit(-1);
         }
-        target_mod_date = file_stats.st_mtime;
-        if (target_mod_date < dep_mod_date) {
+        time_t target_mod_date = file_stats.st_mtime;
+        if (target_mod_date < dep_mod_date || build) {
             buildTarget(bs);
-            target_mod_date = 0; 
+            return 1;
         }
     }
-    // If dep_mod_time > targ_mod_time build and set new targ_mod_time
-    return target_mod_date;
+    return 0;
 }
 
 /*
@@ -121,24 +133,8 @@ void runMakefile(FILE* make) {
     }
     Buildspec* bs = getElement(bs_list, 0);
     
-    time_t target_mod_date = 0;
-    FILE* file;
-    if ((file = fopen(getTarget(bs), "r")) != NULL) {
-
-        fclose(file);
-
-        struct stat file_stats;
-        if (stat(getTarget(bs), &file_stats) < 0) {
-            // Print error
-            exit(-1);
-        }
-        target_mod_date = file_stats.st_mtime;
-        time_t compare = postOrder(bs, bs_list);
-        if (compare == target_mod_date) {
-            printf("Target \"%s\" is up to date.\n", getTarget(bs));
-            exit(1);
-        }
-    } else {
-        postOrder(bs, bs_list);
+    int build = postOrder(bs, bs_list);
+    if (build == 0) {
+        printf("Target \"%s\" is up to date.\n", getTarget(bs));
     }
 }

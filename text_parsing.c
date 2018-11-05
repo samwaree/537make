@@ -20,7 +20,10 @@ void printError(int line_number, char* line) {
 Node* parseMakefile(FILE* make){
 
     char* buff = malloc(BUFFSIZE * sizeof(char));
+    mallocCheck(buff);
     char* line = malloc(BUFFSIZE * sizeof(char));
+    mallocCheck(line);
+
     int line_number = 1;
 
     // Represents the current Build spec to add commands to
@@ -79,6 +82,7 @@ Node* parseMakefile(FILE* make){
                     trim(token);
                     // Copies the token to a new char* and creates a new bs
                     char* target = malloc((strlen(token) + 1) * sizeof(char));
+                    mallocCheck(target);
                     strncpy(target, token, strlen(token) + 1);
 
                     // Makes sure target isn't duplicate
@@ -96,6 +100,7 @@ Node* parseMakefile(FILE* make){
                         } 
                         // Copies the token to a new char* and add to curr
                         char* dep = malloc((strlen(token) + 1) * sizeof(char));
+                        mallocCheck(dep);
                         strncpy(dep, token, strlen(token));
                         addDependency(curr, dep);
                         token = strtok(NULL, " \t");
@@ -112,6 +117,7 @@ Node* parseMakefile(FILE* make){
                     }
                     Buildspec* temp = getElement(bs_list, size(bs_list) - 1);
                     char* command = malloc((strlen(buff) + 1) * sizeof(char));
+                    mallocCheck(command);
                     strncpy(command, buff, strlen(buff) + 1);
                     addCommand(temp, command);
                 }

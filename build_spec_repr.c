@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "linked_list.h"
+#include "proj_utils.h"
 
 // Represents a build specification for the makefile
 typedef struct Buildspec {
@@ -15,6 +16,7 @@ typedef struct Buildspec {
 */
 Buildspec* createBuildSpec(char* targ, int num) {
     Buildspec* bs = (Buildspec*) malloc(sizeof(Buildspec));
+    mallocCheck(bs);
     bs->target = targ;
     bs->dependencies = createList();
     bs->commands = createList();

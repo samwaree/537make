@@ -8,6 +8,10 @@ typedef struct Node{
 
 Node* createList() {
     Node* node = (Node*) malloc(sizeof(Node));
+    if (node == NULL) {
+        fprintf(stderr, "Out of memory.\n");
+        exit(-1);
+    }
     return node;
 }
 
@@ -36,6 +40,10 @@ void append(Node* list, void* el) {
         list = list->next;
     }
     list->next = (Node*) malloc(sizeof(Node));
+    if (list->next == NULL) {
+        fprintf(stderr, "Out of memory.\n");
+        exit(-1);
+    }
     list->next->element = el;
 }
 
