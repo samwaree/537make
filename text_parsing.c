@@ -33,17 +33,36 @@ Node* parseMakefile(FILE* make){
 	char c;
 	int i = 0;
 	while((c = fgetc(make)) != EOF){
+        // If there is a null byte, exit
+        if (c == '\0') {
+            fprintf(stderr, "%d: Invalid character: \'\\0\'.\n", line_number);
+            exit(-1);
+        }
         // Ignores commented lines
         if (i == 0 && c == '#') {
-            while((c = fgetc(make)) != '\n' && c != EOF);
+            while((c = fgetc(make)) != '\n' && c != EOF) { //Flushes line while checking
+                if (c == '\0') {                           //for bad input 
+                    fprintf(stderr, "%d: Invalid character: \'\\0\'.\n", line_number);
+                    exit(-1);
+                }
+                if (i >= BUFFSIZE) {
+                    fprintf(stderr, "%d: Line exceeded buffer size.\n", line_number);
+                    exit(-1);
+                }
+                i++;
+            }
+            i = 0;
             line_number++;
             continue;
+        } else if (c == '#') { // A bad comment
+            fprintf(stderr,"%d: Invalid character: \'#\'.\n", line_number);
+            exit(-1);
         }
         // Ignores empty lines
         if (i == 0 && c == '\n') {
             line_number++;
             continue;
-        }
+       }
         
         //Reads in lines less than BUFFSIZE
 		if(i < BUFFSIZE){
