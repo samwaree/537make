@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void runCommand(char** command){
+void runCommand(char** command, char* target, int line_number){
 	pid_t pid;
 	pid = fork();
 	int status;
@@ -17,9 +17,9 @@ void runCommand(char** command){
 		}
 	}else{
 		wait(&status);
-		//printf("Child exited with %d status.\n", status);
-		if(status == -1){
-            fprintf(stderr, "Unable to run command\n");
+		//printf("Child exited with %d status. PID is %d\n", status, pid);
+		if(status != 0){
+            fprintf(stderr, "%d: Error running command for target \"%s\".\n", line_number, target);
 			exit(-1);
 		}
 	}

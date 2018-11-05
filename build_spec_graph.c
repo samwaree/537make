@@ -38,9 +38,11 @@ char** commandToArgs(char* command) {
 */
 void buildTarget(Buildspec* bs) {
     Node* commands = getCommands(bs);
+    int line_number = getLine(bs) + 1;
     for (int i = 0; i < size(commands); i++) {
         char** args = commandToArgs((char*) getElement(commands,i));
-        runCommand(args);
+        runCommand(args, getTarget(bs), line_number);
+        line_number++;
     }
 }
 
