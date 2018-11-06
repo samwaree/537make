@@ -1,3 +1,7 @@
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +32,12 @@ Buildspec* find(Node* bs_list, char* target) {
     return NULL;
 }
 
+
+/*
+ * This method accepts a linked list as well as a target node to determine
+ * whether or not a duplicate dependency for a given target is listed in
+ * the Makefile.
+ */ 
 int findDuplicates(Node* list, char* target) {
 	for (int i = 0; i < size(list); i++) {
 		char* element = getElement(list, i);

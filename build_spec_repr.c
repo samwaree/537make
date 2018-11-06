@@ -1,3 +1,7 @@
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
+
 #include <stdlib.h>
 #include "linked_list.h"
 #include "proj_utils.h"
