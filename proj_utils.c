@@ -27,3 +27,13 @@ Buildspec* find(Node* bs_list, char* target) {
     }
     return NULL;
 }
+
+int findDuplicates(Node* list, char* target) {
+	for (int i = 0; i < size(list); i++) {
+		char* element = getElement(list, i);
+		if (strcmp(target, element) == 0) {
+			return 1;
+		}
+	}
+	return 0;
+}

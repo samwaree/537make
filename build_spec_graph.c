@@ -127,14 +127,27 @@ int postOrder(Buildspec* bs, Node* bs_list) {
 /*
 * Checks for cycles, and then runs the specificed Buildspec
 */
-void runMakefile(FILE* make) {
+void runMakefile(FILE* make, char* target) {		
     Node* bs_list = parseMakefile(make);
     for (int i = 0; i < size(bs_list); i++) {
         Buildspec* bs = getElement(bs_list, i);
-        checkCycles(bs, bs_list, NULL);
+	checkCycles(bs, bs_list, NULL);
     }
-    Buildspec* bs = getElement(bs_list, 0);
-    
+    if(size(bs_list) == 0){
+    	exit(0);
+    }
+
+    Buildspec* bs;
+    if(target == NULL){
+	bs = getElement(bs_list, 0);
+    }else{
+	bs = find(bs_list, target);
+	if(bs == NULL){
+	    fprintf(stderr, "Error: Could not find target \"%s\"\n", target);
+	    exit(-1);
+	}
+    }
+        
     int build = postOrder(bs, bs_list);
     if (build == 0) {
         printf("Target \"%s\" is up to date.\n", getTarget(bs));

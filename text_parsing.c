@@ -111,18 +111,25 @@ Node* parseMakefile(FILE* make){
                     }
                     curr = createBuildSpec(target, line_number);
 
-                    token = strtok(NULL, " \t");
+    
+                    token = strtok(NULL, " ");
                     while (token != NULL) { // Gets all the dependencies left
-                        if (strchr(token, ':') != NULL) {
+			if ((strchr(token, ':') != NULL) || (strchr(token, '\t') != NULL)){
                             printError(line_number, line);
                             exit(-1);   
                         } 
-                        // Copies the token to a new char* and add to curr
-                        char* dep = malloc((strlen(token) + 1) * sizeof(char));
+//			// Checks for a duplicate dependency
+//			if (findDuplicates(getDependencies(curr), token) == 1) {
+//			    printError(line_number, line);
+//			    exit(-1);
+//			}
+			// Copies the token to a new char* and add to curr
+ 			char* dep = malloc((strlen(token) + 1) * sizeof(char));
                         mallocCheck(dep);
                         strncpy(dep, token, strlen(token));
                         addDependency(curr, dep);
-                        token = strtok(NULL, " \t");
+
+                        token = strtok(NULL, " ");
                     }
                     append(bs_list, curr);
                 } else { // Must be a command

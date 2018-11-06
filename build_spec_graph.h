@@ -3,6 +3,6 @@
 
 #include <stdio.h>
 
-void runMakefile(FILE*);
+void runMakefile(FILE*, char*);
 
 #endif

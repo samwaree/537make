@@ -19,7 +19,7 @@ void runCommand(char** command, char* target, int line_number){
 		wait(&status);
 		//printf("Child exited with %d status. PID is %d\n", status, pid);
 		if(status != 0){
-            fprintf(stderr, "%d: Error running command for target \"%s\".\n", line_number, target);
+			fprintf(stderr, "%d: Error running command for target \"%s\".\n", line_number, target);
 			exit(-1);
 		}
 	}

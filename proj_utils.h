@@ -6,5 +6,6 @@
 
 void mallocCheck(void*);
 Buildspec* find(Node*, char*);
+int findDuplicates(Node*, char*);
 
 #endif
