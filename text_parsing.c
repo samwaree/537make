@@ -1,3 +1,6 @@
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
 #include "build_spec_repr.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +12,9 @@ const int BUFFSIZE = 1024;
 
 void trim(char*);
 
+/*
+* Prints out the standard error statement
+*/ 
 void printError(int line_number, char* line) {
     fprintf(stderr, "%d: Invalid Line: \"%s\"\n", line_number, line);
 }
@@ -28,6 +34,8 @@ Node* parseMakefile(FILE* make){
 
     // Represents the current Build spec to add commands to
     Buildspec* curr = NULL;
+
+    // The list of build specs in the makefile
     Node* bs_list = createList();
 
 	char c;
@@ -67,12 +75,12 @@ Node* parseMakefile(FILE* make){
         //Reads in lines less than BUFFSIZE
 		if(i < BUFFSIZE){
 			if(c == '\n'){ //Once we have a complete line
-
 				buff[i] = '\0';
+
                 // Copies buff to line for error printing
                 strncpy(line, buff, strlen(buff) + 1);
             
-                if (strchr(line, ':') != NULL) { // Treat the line as a target
+                if (strchr(buff, ':') != NULL) { // Treat the line as a target
                     // Checks for an empty target
                     if (buff[0] == ':') {
                         printError(line_number, line);
@@ -114,17 +122,17 @@ Node* parseMakefile(FILE* make){
     
                     token = strtok(NULL, " ");
                     while (token != NULL) { // Gets all the dependencies left
-			if ((strchr(token, ':') != NULL) || (strchr(token, '\t') != NULL)){
-                            printError(line_number, line);
-                            exit(-1);   
-                        } 
+			        if ((strchr(token, ':') != NULL) || (strchr(token, '\t') != NULL)){
+                        printError(line_number, line);
+                        exit(-1);   
+                    } 
 //			// Checks for a duplicate dependency
 //			if (findDuplicates(getDependencies(curr), token) == 1) {
 //			    printError(line_number, line);
 //			    exit(-1);
 //			}
 			// Copies the token to a new char* and add to curr
- 			char* dep = malloc((strlen(token) + 1) * sizeof(char));
+ 			        char* dep = malloc((strlen(token) + 1) * sizeof(char));
                         mallocCheck(dep);
                         strncpy(dep, token, strlen(token));
                         addDependency(curr, dep);
@@ -149,7 +157,7 @@ Node* parseMakefile(FILE* make){
                 }
                 line_number++;
                 i = 0;
-			}else{
+			} else { // Keep reading line
 				buff[i] = c;
 				i++;
 			}
@@ -162,6 +170,9 @@ Node* parseMakefile(FILE* make){
 	return bs_list;
 }
 
+/*
+* Trims spaces off the end of a string
+*/
 void trim(char* str) {
     for (int i = 0; i < (int) strlen(str); i++) {
         if (str[i] == ' ' || str[i] == '\t') {

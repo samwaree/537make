@@ -1,3 +1,6 @@
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
 #include "build_spec_repr.h"
 #include "linked_list.h"
 #include "text_parsing.h"
@@ -15,6 +18,7 @@
 * Converts a command to a tokenized list of strings
 */ 
 char** commandToArgs(char* command) {
+    // A list of all the tokenized strings, used to get the size
     Node* temp_command = createList();
     char* token = strtok(command, " \t");
     while(token != NULL) {
@@ -29,6 +33,7 @@ char** commandToArgs(char* command) {
         args[i] = getElement(temp_command, i);
     }
     
+    // NULL terminator for use with exec() functions
     args[size(temp_command)] = NULL;
     return args;
 }
@@ -68,7 +73,10 @@ void checkCycles(Buildspec* bs, Node* bs_list, Buildspec* prev) {
     unmark(bs);
 }
 
-// Should do a post order traversal and run the commands
+/*
+* Runs a post order traversal on the build graph to run a bulid spec and all
+* its dependencies. Returns 1 if the target was built, 0 otherwise.
+*/
 int postOrder(Buildspec* bs, Node* bs_list) {
     Node* deps = getDependencies(bs);
     if (size(deps) == 0) {
@@ -87,35 +95,37 @@ int postOrder(Buildspec* bs, Node* bs_list) {
                 exit(-1);                
             }
 
-            struct stat file_stats;
-            if (stat(target, &file_stats) < 0) {
+            struct stat dep_stats;
+            if (stat(target, &dep_stats) < 0) {
                 fprintf(stderr, "Error: Unable to open file's stats: %s\n", target);
                 exit(-1);
             }
-
-            if (file_stats.st_mtime > dep_mod_date) {
-                dep_mod_date = file_stats.st_mtime;
+            // Sets dep_mod_date to the most recent modification date
+            if (dep_stats.st_mtime > dep_mod_date) {
+                dep_mod_date = dep_stats.st_mtime;
             }
         } else {
-            int temp = postOrder(next, bs_list);
-            if (temp) {
+            int depBuilt = postOrder(next, bs_list);
+            if (depBuilt) { // If a dependency was built, build target
                 build = 1;
             }
         }
     }
     
-    if (access(getTarget(bs), R_OK) < 0) {
+    if (access(getTarget(bs), R_OK) < 0) { // If the target doesn't exist
         if (build || dep_mod_date > 0) {
             buildTarget(bs);
             return 1;
         }
-    } else {
-        struct stat file_stats;
-        if (stat(getTarget(bs), &file_stats) < 0) {
+    } else { // If the target exists
+        struct stat target_stats;
+        if (stat(getTarget(bs), &target_stats) < 0) {
             fprintf(stderr, "Error: Unable to open file's stats: %s\n", getTarget(bs));
             exit(-1);
         }
-        time_t target_mod_date = file_stats.st_mtime;
+        time_t target_mod_date = target_stats.st_mtime;
+
+        // Build if a dependency was build or target is out of date
         if (target_mod_date < dep_mod_date || build) {
             buildTarget(bs);
             return 1;
@@ -125,13 +135,14 @@ int postOrder(Buildspec* bs, Node* bs_list) {
 }
 
 /*
-* Checks for cycles, and then runs the specificed Buildspec
+* Checks for cycles, and then tries to build the specified target
 */
-void runMakefile(FILE* make, char* target) {		
+void runMakefile(FILE* make, char* target) {
+    // Parses the makefile to get all the build specs		
     Node* bs_list = parseMakefile(make);
     for (int i = 0; i < size(bs_list); i++) {
         Buildspec* bs = getElement(bs_list, i);
-	checkCycles(bs, bs_list, NULL);
+	    checkCycles(bs, bs_list, NULL);
     }
     if(size(bs_list) == 0){
     	exit(0);
@@ -139,13 +150,13 @@ void runMakefile(FILE* make, char* target) {
 
     Buildspec* bs;
     if(target == NULL){
-	bs = getElement(bs_list, 0);
-    }else{
-	bs = find(bs_list, target);
-	if(bs == NULL){
-	    fprintf(stderr, "Error: Could not find target \"%s\"\n", target);
-	    exit(-1);
-	}
+	    bs = getElement(bs_list, 0);
+    } else {
+	    bs = find(bs_list, target);
+	    if(bs == NULL){
+	        fprintf(stderr, "Error: Could not find target \"%s\"\n", target);
+	        exit(-1);
+	    }
     }
         
     int build = postOrder(bs, bs_list);
