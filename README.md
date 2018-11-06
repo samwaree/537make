@@ -19,3 +19,7 @@ Once the Makefile has finished parsing and the build specifications have been bu
 or
 
 537make [-f \<name of Makefile\>] \<target\>
+
+or for makefiles named "Makefile" or "makefile"
+
+537make
