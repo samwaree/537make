@@ -14,8 +14,8 @@ Once the Makefile has finished parsing and the build specifications have been bu
 
 # **Usage**
 
-537make <target> [-f <name of Makefile>]
+537make \<target\> [-f \<name of Makefile\>]
 
 or
 
-537make [-f <name of Makefile>] <target>
+537make [-f \<name of Makefile\>] \<target\>
