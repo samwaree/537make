@@ -46,9 +46,6 @@ void buildTarget(Buildspec* bs) {
     int line_number = getLine(bs) + 1;
     for (int i = 0; i < size(commands); i++) {
         char** args = commandToArgs((char*) getElement(commands,i));
-//	for(int j = 0; j < size(commands); j++) {
-//		printf("%s ", args[j]);
-//	}
 	int j = 0;
 	while(args[j] != NULL){
 		printf("%s ", args[j]);
