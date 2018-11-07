@@ -16,7 +16,7 @@ void runCommand(char** command, char* target, int line_number){
 	pid = fork();
 	int status;
 	
-	if(pid == 0){
+	if(pid == 0){ 
 		if(execvp(command[0], command) < 0){
 			exit(-1);
 		}else{
