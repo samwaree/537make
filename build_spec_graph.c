@@ -17,25 +17,20 @@
 /*
 * Converts a command to a tokenized list of strings
 */ 
-char** commandToArgs(char* command) {
+Node* commandToArgs(char* command) {
     // A list of all the tokenized strings, used to get the size
     Node* temp_command = createList();
     char* token = strtok(command, " \t");
     while(token != NULL) {
-        append(temp_command, token);
+	char* copy = malloc((strlen(token) + 1) * sizeof(char));
+	mallocCheck(copy);
+	memset(copy, 0, (strlen(token) + 1) * sizeof(char));
+	strncpy(copy, token, strlen(token));
+        append(temp_command, copy);
         token = strtok(NULL, " \t");
     }
-    
-    char** args = (char**) malloc((size(temp_command) + 1) * sizeof(char*));
-    mallocCheck(args);
 
-    for (int i = 0; i < size(temp_command); i++) {
-        args[i] = getElement(temp_command, i);
-    }
-    
-    // NULL terminator for use with exec() functions
-    args[size(temp_command)] = NULL;
-    return args;
+    return temp_command;
 }
 
 /*
@@ -45,7 +40,19 @@ void buildTarget(Buildspec* bs) {
     Node* commands = getCommands(bs);
     int line_number = getLine(bs) + 1;
     for (int i = 0; i < size(commands); i++) {
-        char** args = commandToArgs((char*) getElement(commands,i));
+//
+        Node* temp_command = commandToArgs((char*) getElement(commands,i));
+
+	char** args = (char**) malloc((size(temp_command) + 1) * sizeof(char*));
+    	mallocCheck(args);
+
+    	for (int i = 0; i < size(temp_command); i++) {
+            args[i] = getElement(temp_command, i);
+    	}
+
+    	// NULL terminator for use with exec() functions
+    	args[size(temp_command)] = NULL;
+//
 	int j = 0;
 	while(args[j] != NULL){
 		printf("%s ", args[j]);
@@ -54,6 +61,11 @@ void buildTarget(Buildspec* bs) {
 	printf("\n");
         runCommand(args, getTarget(bs), line_number);
         line_number++;
+	for(int j = 0; j < size(temp_command); j++) {
+		free(args[j]);
+	}
+	free(args);
+	freeList(temp_command);
     }
 }
 

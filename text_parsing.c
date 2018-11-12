@@ -132,8 +132,9 @@ Node* parseMakefile(FILE* make){
 //			    exit(-1);
 //			}
 			// Copies the token to a new char* and add to curr
- 			        char* dep = malloc((strlen(token) + 1) * sizeof(char));
+ 			char* dep = malloc((strlen(token) + 1) * sizeof(char));
                         mallocCheck(dep);
+			memset(dep, 0, (strlen(token) + 1) * sizeof(char));
                         strncpy(dep, token, strlen(token));
                         addDependency(curr, dep);
 
@@ -152,6 +153,7 @@ Node* parseMakefile(FILE* make){
                     Buildspec* temp = getElement(bs_list, size(bs_list) - 1);
                     char* command = malloc((strlen(buff) + 1) * sizeof(char));
                     mallocCheck(command);
+		    memset(command, 0, (strlen(buff) + 1) * sizeof(char));
                     strncpy(command, buff, strlen(buff) + 1);
                     addCommand(temp, command);
                 }
@@ -167,6 +169,8 @@ Node* parseMakefile(FILE* make){
 		}
 	}
 
+	free(buff);
+	free(line);
 	return bs_list;
 }
 

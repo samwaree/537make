@@ -7,4 +7,5 @@ Node* createList();
 int size(Node*);
 void append(Node*, void*);
 void* getElement(Node*, int);
+void freeList(Node*);
 #endif

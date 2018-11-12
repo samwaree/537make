@@ -12,6 +12,8 @@ Node* createList() {
         fprintf(stderr, "Out of memory.\n");
         exit(-1);
     }
+    node->element = NULL;
+    node->next = NULL;
     return node;
 }
 
@@ -45,6 +47,7 @@ void append(Node* list, void* el) {
         exit(-1);
     }
     list->next->element = el;
+    list->next->next = NULL;
 }
 
 void* getElement(Node* list, int index) {
@@ -59,4 +62,14 @@ void* getElement(Node* list, int index) {
     }
 
     return list->element;
+}
+
+void freeList(Node* list){
+    if(list == NULL) {
+	return;
+    }	    
+    if(list->next != NULL) {
+	freeList(list->next);
+    }
+    free(list);
 }
